@@ -14,12 +14,16 @@
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Version>1.0.0</Version>
 	<PackageId>TPJ.Excel</PackageId>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="DocumentFormat.OpenXml" Version="2.19.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="EPPlus" Version="4.5.3.3" />
+		<None Include="..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\LICENSE.txt" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 </Project>

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+	<TargetFrameworks>netstandard2.0</TargetFrameworks>
+	<LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<Authors>Thomas James</Authors>
+	<Company>TPJ</Company>
+	<Description>
+		Simple helper library that covers almost all scenarios where you need to create an excel file
+	</Description>
+	<PackageReleaseNotes>Version 1.0!</PackageReleaseNotes>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Version>1.0.0</Version>
+	<PackageId>TPJ.Excel</PackageId>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DocumentFormat.OpenXml" Version="2.19.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+		<PackageReference Include="EPPlus" Version="4.5.3.3" />
+	</ItemGroup>
+
+</Project>

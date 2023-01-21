@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPJ.Excel", "TPJ.Excel\TPJ.Excel.csproj", "{AFE7C9AD-7AE5-4FC5-85DA-7FDA590095BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPJ.ExcelTest", "TPJ.ExcelTest\TPJ.ExcelTest.csproj", "{73AE52EE-F4C6-4EC7-AF4E-F9F4408E85F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AFE7C9AD-7AE5-4FC5-85DA-7FDA590095BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFE7C9AD-7AE5-4FC5-85DA-7FDA590095BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFE7C9AD-7AE5-4FC5-85DA-7FDA590095BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFE7C9AD-7AE5-4FC5-85DA-7FDA590095BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73AE52EE-F4C6-4EC7-AF4E-F9F4408E85F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73AE52EE-F4C6-4EC7-AF4E-F9F4408E85F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73AE52EE-F4C6-4EC7-AF4E-F9F4408E85F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73AE52EE-F4C6-4EC7-AF4E-F9F4408E85F7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AD31F7E1-6774-431B-BDC0-0153E650E2B9}
+	EndGlobalSection
+EndGlobal

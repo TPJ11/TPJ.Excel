@@ -16,6 +16,8 @@
 	<PackageId>TPJ.Excel</PackageId>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+	<RepositoryUrl>https://github.com/TPJ11/TPJ.Excel</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
 	<ItemGroup>

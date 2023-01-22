@@ -11,9 +11,9 @@
 		Simple helper library that covers almost all scenarios where you need to create an excel file
 	</Description>
 	<PackageTags>Excel,EPPlus,OpenXml</PackageTags>
-	<PackageReleaseNotes>Version 1.0!</PackageReleaseNotes>
+	<PackageReleaseNotes>Moved cell tracking to own class</PackageReleaseNotes>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>1.0.0</Version>
+	<Version>1.1.0</Version>
 	<PackageId>TPJ.Excel</PackageId>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>

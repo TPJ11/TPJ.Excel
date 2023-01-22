@@ -48,45 +48,45 @@ EPPlusHelper.Create(new EPPlusWorksheet("Staff")
             DateFormat = "dd/mm/yyyy"
         },
     }))
-}, @"C:\SimpleEPPlus.xlsx");
+}, @"C:\Test\SimpleEPPlus.xlsx");
 ```
 
 ## Full Control
 Lastly if you have a more complex file you need to create then you can use the full power of EPPlus (note TPJ.Excel uses the last open source EPPlus version 4.5.3.3, V5+ of EPPlus is a paid for product).
 
-You can use `CellHelper` methods to help maintain state of your current cell to keep your code much cleaner. Just remember to always call `CellHelper.Reset();` when you start a new worksheet. `CellHelper` contains some extenstion methods to help get the current 'selected' cell, if you are using `CellHelper` to maintain your 'selected' cell state then you simple call `ws.Cell()` and it will return the current cell. You can move to the next row and column by calling the `CellHelper.NextRow()` and `CellHelper.NextColumn()` methods by default if you call `NextRow` the column is reset back to the start you can override this by passing in false `CellHelper.NextRow(false)`, you can also set the row and column by calling `CellHelper.SetRow` and `CellHelper.SetColumn` if needed.
+Calling the extension method `AddWorksheet` on the workbook returns an object containing the worksheet that has the ability to track the currently 'selected' cell to make moving though the worksheet simple and clean.
+
+Note - the below will produce the same as the 'Some control' above
 
 ```
 using var p = new ExcelPackage();
-var ws = p.Workbook.Worksheets.Add("Overview");
-
-CellHelper.Reset();
+var ws = p.Workbook.AddWorksheet("Staff");
 
 ws.Cell().Value = "Staff #";
 ws.Cell().Style.Font.Bold = true;
-CellHelper.NextColumn();
+ws.NextColumn();
 
 ws.Cell().Value = "Name";
 ws.Cell().Style.Font.Bold = true;
-CellHelper.NextColumn();
+ws.NextColumn();
 
 ws.Cell().Value = "Start Date";
 ws.Cell().Style.Font.Bold = true;
 
-CellHelper.NextRow();
+ws.NextRow();
 
 foreach (var item in staff)
 {
     ws.Cell().Value = item.Id;
-    CellHelper.NextColumn();
+    ws.NextColumn();
 
     ws.Cell().Value = item.Name;
-    CellHelper.NextColumn();
+    ws.NextColumn();
 
     ws.Cell().Value = item.StartDate;
     ws.Cell().Style.Numberformat.Format = "dd/mm/yyyy";
 
-    CellHelper.NextRow();
+    ws.NextRow();
 }
 
 p.SaveAs(new FileInfo(@"C:\Test\ComplexEPPlus.xlsx"));

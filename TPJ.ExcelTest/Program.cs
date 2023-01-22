@@ -60,39 +60,38 @@ namespace TPJ.ExcelTest
                 }))
             }, $@"{baseSaveLocation}\SimpleEPPlus.xlsx");
 
-            // If you need full control over the excel document you can use full EPPlus. CellHelper has a few helper
-            // methods to make the process of maintining the state of the current cell easier.
+            // If you need full control over the excel document you can use full EPPlus.
+            // Calling the extension method 'AddWorksheet' on the workbook returns an object containing the worksheet that
+            // has the ability to track the currently 'selected' cell to make moving though the worksheet simple and clean
             // Note - the below will produce the same as the EPPlusHelper.Create above
             using var p = new ExcelPackage();
-            var ws = p.Workbook.Worksheets.Add("Overview");
-
-            CellHelper.Reset(); // Always call reset when starting a new worksheet
+            var ws = p.Workbook.AddWorksheet("Staff");
 
             ws.Cell().Value = "Staff #";
             ws.Cell().Style.Font.Bold = true;
-            CellHelper.NextColumn();
+            ws.NextColumn();
 
             ws.Cell().Value = "Name";
             ws.Cell().Style.Font.Bold = true;
-            CellHelper.NextColumn();
+            ws.NextColumn();
 
             ws.Cell().Value = "Start Date";
             ws.Cell().Style.Font.Bold = true;
 
-            CellHelper.NextRow();
+            ws.NextRow();
 
             foreach (var item in staff)
             {
                 ws.Cell().Value = item.Id;
-                CellHelper.NextColumn();
+                ws.NextColumn();
 
                 ws.Cell().Value = item.Name;
-                CellHelper.NextColumn();
+                ws.NextColumn();
 
                 ws.Cell().Value = item.StartDate;
                 ws.Cell().Style.Numberformat.Format = "dd/mm/yyyy";
 
-                CellHelper.NextRow();
+                ws.NextRow();
             }
 
             p.SaveAs(new FileInfo($@"{baseSaveLocation}\ComplexEPPlus.xlsx"));

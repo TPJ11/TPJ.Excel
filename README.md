@@ -1,93 +1,283 @@
 # TPJ.Excel
-Simple helper library that covers almost all scenarios where you need to create an excel file.
 
-# Examples
-There are three main types of excel scenarios that this library covers. Take a look at `TPJ.ExcelTest` within the code to see a simple example of each.
+`TPJ.Excel` is a small helper library for generating Excel files in three different ways:
 
-## Super Simple
-If all you want to do is create an excel file using the given list of data and are not worried about the format or the headings then you can achieve this by calling `ExcelDocument.Create` there are a number of overloads for this method but they simply group down to do you want to save the file to disk or get the file as bytes?
+1. `ExcelDocument` for quick exports from a list, `DataTable`, or `DataSet`
+2. `EPPlusHelper` when you want custom headers and simple formatting
+3. `AddWorksheet` / `ExcelWorksheetExtension` when you want full control while still writing concise EPPlus code
 
-### Save to disk
-`ExcelDocument.Create(staff, @"C:\Test\SimpleExcelDocument.xlsx");`
+If you want to see working examples, check `TPJ.ExcelTest`.
 
-### Get bytes
-`var excelBytes = ExcelDocument.Create(staff);`
+## When to use each option
 
-## Some control
-If you want to have some control over the headings and the format of the dates and numbers then you can use the `EPPlusHelper` class's and methods. This basically wraps what you can do in the more complex example below in an easy to read and understand format, very useful for 90% of scenarios you are asked to create an excel file for.
+### Use `ExcelDocument` when you want speed and simplicity
+- Create a workbook directly from a `List<T>`, `DataTable`, or `DataSet`
+- Column names come from property names or table columns
+- Good for quick exports where default formatting is enough
 
-First you need to create a worksheet this is done using `EPPlusWorksheet` class. Within the worksheet you have three properties:
-1. Name - This is the name of the worksheet (tabs at the bottom of excel)
-2. Headers - This is the list of names you want for your headers in order of the data you are adding
-3. Rows - This contains your data
+### Use `EPPlusHelper` when you want clean control over output
+- Set worksheet names
+- Choose your own headers
+- Format dates and numbers
+- Good for most business export scenarios
 
-The row object `EPPlusRow` has one property `Data` this contains the data to add to the row in the same order as your headings.
+### Use full EPPlus support when you need custom layout
+- Write exactly where you want in the sheet
+- Move cell by cell using `CurrentCell()`, `NextColumn()`, and `NextRow()`
+- Good for reports, grouped sections, totals, and custom styling
 
-The data object `EPPlusData` has three properties:
-1. Value - Contains the value that will go into the cell
-2. DateFormat - If set the format of the value e.g. `dd/mm/yyyy`
-2. NumberFormat - If set the format of the value e.g. `#0.00`
+## Sample model
 
-Both DateFormat and NumberFormat apply to the same propery so they are the same the only reason to have them as two properties is to make it clear to people reading your code. Formats can be found on the [EPPlus documentation](https://github.com/EPPlusSoftware/EPPlus/wiki/Formatting-and-styling)
+All examples below use this simple model:
 
-```
-EPPlusHelper.Create(new EPPlusWorksheet("Staff")
+```csharp
+public class Staff
 {
-    Headers = new List<string>()
-    {
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public decimal Salary { get; set; }
+}
+
+var staff = new List<Staff>
+{
+    new() { Id = 1, Name = "Jeff Bob", StartDate = new DateTime(2024, 1, 15), Salary = 32500m },
+    new() { Id = 2, Name = "Thomas James", StartDate = new DateTime(2022, 6, 1), Salary = 41000m },
+    new() { Id = 3, Name = "Sophie Hall", StartDate = new DateTime(2025, 2, 10), Salary = 29500m }
+};
+```
+
+## 1. Quick export with `ExcelDocument`
+
+`ExcelDocument` is the quickest way to generate an Excel file.
+
+### Save a list to disk
+
+```csharp
+using TPJ.Excel;
+
+ExcelDocument.Create(staff, @"C:\Test\Staff.xlsx");
+```
+
+You can also pass any `IEnumerable<T>` and choose the worksheet name:
+
+```csharp
+using TPJ.Excel;
+
+ExcelDocument.Create(staff.Where(x => x.Salary >= 30000m), @"C:\Test\StaffFiltered.xlsx", "Staff");
+```
+
+### Return the file as bytes
+
+```csharp
+using TPJ.Excel;
+
+byte[] excelBytes = ExcelDocument.Create(staff);
+```
+
+### Notes
+
+- Each public property becomes a column
+- Property names are used as the header row
+- Simple scalar values such as `string`, `int`, `decimal`, and `DateTime` are exported as a single `Value` column
+- You can also create files from `DataTable` and `DataSet`
+
+Example with a `DataTable`:
+
+```csharp
+using System.Data;
+using TPJ.Excel;
+
+var table = new DataTable("Staff");
+table.Columns.Add("Staff #", typeof(int));
+table.Columns.Add("Name", typeof(string));
+table.Columns.Add("Start Date", typeof(DateTime));
+
+table.Rows.Add(1, "Jeff Bob", new DateTime(2024, 1, 15));
+table.Rows.Add(2, "Thomas James", new DateTime(2022, 6, 1));
+
+ExcelDocument.Create(table, @"C:\Test\StaffFromTable.xlsx");
+```
+
+## 2. Custom headers and formatting with `EPPlusHelper`
+
+Use `EPPlusHelper` when you want a simple API but need more control over how the sheet looks.
+
+### Main types
+
+For most cases, use the typed builder overloads:
+
+```csharp
+using TPJ.Excel;
+
+EPPlusHelper.Create(
+    staff,
+    "Staff",
+    @"C:\Test\StaffFormatted.xlsx",
+    columns => columns
+        .Add("Staff #", x => x.Id)
+        .Add("Name", x => x.Name)
+        .Add("Start Date", x => x.StartDate, dateFormat: "dd/mm/yyyy")
+        .Add("Salary", x => x.Salary, numberFormat: "#,##0.00"));
+```
+
+You can still use `EPPlusHelper.Column<T>(...)` if you prefer building the column list yourself.
+
+If you want to build multiple typed worksheets before creating the workbook, use `EPPlusHelper.Worksheet(...)`:
+
+```csharp
+using TPJ.Excel;
+
+var summarySheet = EPPlusHelper.Worksheet(
+    staff.Select(x => new { Label = x.Name, Created = DateTime.Today }),
+    "Summary",
+    columns => columns
+        .Add("Label", x => x.Label)
+        .Add("Created", x => x.Created, dateFormat: "dd/mm/yyyy"));
+
+var staffSheet = EPPlusHelper.Worksheet(
+    staff,
+    "Staff",
+    columns => columns
+        .Add("Staff #", x => x.Id)
+        .Add("Name", x => x.Name)
+        .Add("Start Date", x => x.StartDate, dateFormat: "dd/mm/yyyy")
+        .Add("Salary", x => x.Salary, numberFormat: "#,##0.00"));
+
+EPPlusHelper.Create(new[] { summarySheet, staffSheet }, @"C:\Test\StaffReport.xlsx");
+```
+
+If you want to build the worksheet model yourself, these are the core types:
+
+- `EPPlusWorksheet`
+  - `Name`: worksheet name
+  - `Headers`: column headers
+  - `Rows`: row data
+- `EPPlusRow`
+  - `Data`: the cells for that row, in column order
+- `EPPlusData`
+  - `Value`: cell value
+  - `DateFormat`: Excel date format string
+  - `NumberFormat`: Excel number format string
+
+Formatting options are passed straight to Excel cell formatting. Common examples include `dd/mm/yyyy` and `#,##0.00`.
+
+### Save to disk with the worksheet model
+
+```csharp
+using TPJ.Excel;
+using TPJ.Excel.Models;
+
+var worksheet = new EPPlusWorksheet
+{
+    Name = "Staff",
+    Headers =
+    [
         "Staff #",
         "Name",
-        "Start Date"
-    },
-    Rows = staff.Select(x => new EPPlusRow(new List<EPPlusData>()
+        "Start Date",
+        "Salary"
+    ],
+    Rows = staff.Select(x => new EPPlusRow
     {
-        new EPPlusData(x.Id),
-        new EPPlusData(x.Name),
-        new EPPlusData(x.StartDate)
+        Data =
+        [
+            new EPPlusData { Value = x.Id },
+            new EPPlusData { Value = x.Name },
+            new EPPlusData
+            {
+                Value = x.StartDate,
+                DateFormat = "dd/mm/yyyy"
+            },
+            new EPPlusData
+            {
+                Value = x.Salary,
+                NumberFormat = "#,##0.00"
+            }
+        ]
+    })
+};
+
+EPPlusHelper.Create(worksheet, @"C:\Test\StaffFormatted.xlsx");
+```
+
+### Return the file as bytes
+
+```csharp
+using TPJ.Excel;
+
+byte[] excelBytes = EPPlusHelper.Create(worksheet);
+```
+
+### Multiple worksheets
+
+```csharp
+using TPJ.Excel;
+using TPJ.Excel.Models;
+
+var summarySheet = new EPPlusWorksheet
+{
+    Name = "Summary",
+    Headers = ["Report", "Created"],
+    Rows =
+    [
+        new EPPlusRow
         {
-            DateFormat = "dd/mm/yyyy"
-        },
-    }))
-}, @"C:\Test\SimpleEPPlus.xlsx");
+            Data =
+            [
+                new EPPlusData { Value = "Staff Export" },
+                new EPPlusData { Value = DateTime.Today, DateFormat = "dd/mm/yyyy" }
+            ]
+        }
+    ]
+};
+
+EPPlusHelper.Create(new[] { summarySheet, worksheet }, @"C:\Test\StaffReport.xlsx");
 ```
 
-## Full Control
-Lastly if you have a more complex file you need to create then you can use the full power of EPPlus (note TPJ.Excel uses the last open source EPPlus version 4.5.3.3, V5+ of EPPlus is a paid for product).
+## 3. Full control with EPPlus and `AddWorksheet`
 
-Calling the extension method `AddWorksheet` on the workbook returns an object containing the worksheet that has the ability to track the currently 'selected' cell to make moving though the worksheet simple and clean.
+If you need a more custom workbook, use EPPlus directly and let `TPJ.Excel` help with navigation.
 
-Note - the below will produce the same as the 'Some control' above
+`AddWorksheet` returns an `ExcelWorksheetExtension`, which tracks the current row and column for you.
+It also includes `Write(...)`, `WriteNext(...)`, `WriteHeader(...)`, and `WriteRow(...)` helpers to cut down repetitive code.
 
-```
-using var p = new ExcelPackage();
-var ws = p.Workbook.AddWorksheet("Staff");
+### Example
 
-ws.Cell().Value = "Staff #";
-ws.Cell().Style.Font.Bold = true;
-ws.NextColumn();
+```csharp
+using OfficeOpenXml;
+using TPJ.Excel;
 
-ws.Cell().Value = "Name";
-ws.Cell().Style.Font.Bold = true;
-ws.NextColumn();
+using var package = new ExcelPackage();
+var ws = package.Workbook.AddWorksheet("Staff");
 
-ws.Cell().Value = "Start Date";
-ws.Cell().Style.Font.Bold = true;
-
-ws.NextRow();
+ws.WriteHeader("Staff #", "Name", "Start Date", "Salary");
 
 foreach (var item in staff)
 {
-    ws.Cell().Value = item.Id;
-    ws.NextColumn();
-
-    ws.Cell().Value = item.Name;
-    ws.NextColumn();
-
-    ws.Cell().Value = item.StartDate;
-    ws.Cell().Style.Numberformat.Format = "dd/mm/yyyy";
+    ws.WriteNext(item.Id)
+      .WriteNext(item.Name)
+      .WriteNext(item.StartDate, dateFormat: "dd/mm/yyyy")
+      .Write(item.Salary, numberFormat: "#,##0.00");
 
     ws.NextRow();
 }
 
-p.SaveAs(new FileInfo(@"C:\Test\ComplexEPPlus.xlsx"));
+package.SaveAs(new FileInfo(@"C:\Test\StaffAdvanced.xlsx"));
 ```
+
+### Useful navigation methods
+
+- `CurrentCell()` gets the current cell
+- `NextColumn()` moves one column to the right
+- `NextRow()` moves to the next row and resets the column back to the first column
+- `PreviousColumn()` and `PreviousRow()` let you move backwards
+- `Reset()` returns to cell `A1`
+
+## Summary
+
+- Use `ExcelDocument` for the fastest export
+- Use `EPPlusHelper` for clean, readable exports with headers and formatting
+- Use full EPPlus support when you need a custom layout or advanced workbook logic
+
+For complete working examples, see `TPJ.ExcelTest\Program.cs`.

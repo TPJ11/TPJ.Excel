@@ -1,31 +1,30 @@
 ﻿using OfficeOpenXml;
 using TPJ.Excel;
-using TPJ.Excel.Models;
 
 namespace TPJ.ExcelTest
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             var baseSaveLocation = "C:\\Test";
             Directory.CreateDirectory(baseSaveLocation);
 
             var staff = new List<Staff>()
             {
-                new Staff()
+                new ()
                 {
                     Id = 1,
                     Name = "Jeff Bob",
                     StartDate = DateTime.Now.AddDays(-5),
                 },
-                new Staff()
+                new ()
                 {
                     Id = 2,
                     Name = "Thomas James",
                     StartDate = DateTime.Now.AddYears(-2),
                 },
-                new Staff()
+                new ()
                 {
                     Id = 3,
                     Name = "Sophie Hall",
@@ -34,31 +33,23 @@ namespace TPJ.ExcelTest
             };
 
             // As simple as you can get, pass in the data object you wish to create an excel file for
-            // Note - the object must be a class e.g. you can't pass in a list of string but you can
-            // pass in a list of a class that has a single property of a string.
-            // This is due to the fact the property name is used as the column heading
             ExcelDocument.Create(staff, $@"{baseSaveLocation}\SimpleExcelDocument.xlsx");
 
-            // The EPPlus helper gives you more control over how the simple table will look
-            // You set the column heading name and can pass in how you wish the data to be formatted
-            EPPlusHelper.Create(new EPPlusWorksheet("Staff")
-            {
-                Headers = new List<string>()
-                {
-                    "Staff #",
-                    "Name",
-                    "Start Date"
-                },
-                Rows = staff.Select(x => new EPPlusRow(new List<EPPlusData>()
-                {
-                    new EPPlusData(x.Id),
-                    new EPPlusData(x.Name),
-                    new EPPlusData(x.StartDate)
-                    {
-                        DateFormat = "dd/mm/yyyy"
-                    },
-                }))
-            }, $@"{baseSaveLocation}\SimpleEPPlus.xlsx");
+            // You can also write any IEnumerable<T> directly to disk and choose the worksheet name.
+            ExcelDocument.Create(staff.Where(x => x.Id > 0), $@"{baseSaveLocation}\SimpleExcelDocumentNamedSheet.xlsx", "Staff");
+
+            // Simple scalar values are exported as a single Value column.
+            ExcelDocument.Create(staff.Select(x => x.Name), $@"{baseSaveLocation}\SimpleExcelDocumentScalarValues.xlsx", "Names");
+
+            // The typed EPPlus helper keeps custom headers and formatting without the nested row/cell model.
+            EPPlusHelper.Create(
+                staff,
+                "Staff",
+                $@"{baseSaveLocation}\SimpleEPPlus.xlsx",
+                columns => columns
+                    .Add("Staff #", x => x.Id)
+                    .Add("Name", x => x.Name)
+                    .Add("Start Date", x => x.StartDate, dateFormat: "dd/mm/yyyy"));
 
             // If you need full control over the excel document you can use full EPPlus.
             // Calling the extension method 'AddWorksheet' on the workbook returns an object containing the worksheet that
@@ -67,29 +58,13 @@ namespace TPJ.ExcelTest
             using var p = new ExcelPackage();
             var ws = p.Workbook.AddWorksheet("Staff");
 
-            ws.Cell().Value = "Staff #";
-            ws.Cell().Style.Font.Bold = true;
-            ws.NextColumn();
-
-            ws.Cell().Value = "Name";
-            ws.Cell().Style.Font.Bold = true;
-            ws.NextColumn();
-
-            ws.Cell().Value = "Start Date";
-            ws.Cell().Style.Font.Bold = true;
-
-            ws.NextRow();
+            ws.WriteHeader("Staff #", "Name", "Start Date");
 
             foreach (var item in staff)
             {
-                ws.Cell().Value = item.Id;
-                ws.NextColumn();
-
-                ws.Cell().Value = item.Name;
-                ws.NextColumn();
-
-                ws.Cell().Value = item.StartDate;
-                ws.Cell().Style.Numberformat.Format = "dd/mm/yyyy";
+                ws.WriteNext(item.Id)
+                  .WriteNext(item.Name)
+                  .Write(item.StartDate, dateFormat: "dd/mm/yyyy");
 
                 ws.NextRow();
             }
@@ -101,7 +76,7 @@ namespace TPJ.ExcelTest
     class Staff
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public DateTime StartDate { get; set; }
     }
 }
